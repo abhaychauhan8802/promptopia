@@ -6,10 +6,24 @@ import { useState, useEffect } from "react";
 import { signIn, signOut, useSession, getProviders } from "next-auth/react";
 
 const Nav = () => {
-  const isUserLoggedIn = true;
+  const { data: session } = useSession();
 
   const [providers, setProviders] = useState(null);
   const [toggleDropdown, setToggleDropdown] = useState(false);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!event.target.closest("#dropdown")) {
+        setToggleDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [toggleDropdown]);
 
   useEffect(() => {
     (async () => {
@@ -33,7 +47,7 @@ const Nav = () => {
 
       {/* Desktop navigation */}
       <div className="sm:flex hidden">
-        {isUserLoggedIn ? (
+        {session?.user ? (
           <div className="flex gap-3 md:gap-5">
             <Link href="/create-prompt" className="black_btn">
               Create Post
@@ -44,7 +58,7 @@ const Nav = () => {
 
             <Link href="/profile">
               <Image
-                src="/assets/images/logo.svg"
+                src={session?.user.image}
                 width={37}
                 height={37}
                 className="rounded-full object-contain"
@@ -71,10 +85,10 @@ const Nav = () => {
 
       {/* Mobile navigation */}
       <div className="sm:hidden flex relative">
-        {isUserLoggedIn ? (
+        {session?.user ? (
           <div className="flex">
             <Image
-              src="/assets/images/logo.svg"
+              src={session?.user.image}
               width={37}
               height={37}
               className="rounded-full object-contain cursor-pointer"
@@ -83,7 +97,7 @@ const Nav = () => {
             />
 
             {toggleDropdown && (
-              <div className="dropdown">
+              <div className="dropdown" id="dropdown">
                 <Link
                   href="/profile"
                   className="dropdown_link"
